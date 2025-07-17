@@ -1,30 +1,7 @@
 import React, { useState, useEffect } from 'react';
-console.log("🔥 App.js version: JULY-17-STABLE");
 
 function App() {
   const [language, setLanguage] = useState('mql4');
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem('chatMessages');
-    return saved ? JSON.parse(saved) : [getSystemMessage('mql4')];
-  });
-  const [userInput, setUserInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [copySuccess, setCopySuccess] = useState('');
-  const [uses, setUses] = useState(null); // start as null to indicate "not yet loaded"
-  const [email, setEmail] = useState('');
-  const [emailSubmitted, setEmailSubmitted] = useState(() => !!localStorage.getItem('userEmail'));
-
-  // Load free uses on first render
-  useEffect(() => {
-    const storedUses = Number(localStorage.getItem('freeUses') || 0);
-    setUses(storedUses);
-    console.log("📦 Free uses loaded from localStorage:", storedUses);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('chatMessages', JSON.stringify(messages));
-  }, [messages]);
 
   const getSystemMessage = (lang) => ({
     role: 'system',
@@ -38,63 +15,49 @@ Instructions:
 - Support the user across multiple follow-ups — revise, debug, and improve until it’s ready to go`
   });
 
-  const sendMessage = async () => {
-    if (uses === null) {
-      setError("Please wait, usage counter still loading...");
-      return;
-    }
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chatMessages');
+    return saved ? JSON.parse(saved) : [getSystemMessage(language)];
+  });
 
-    if (emailSubmitted || uses < 3) {
-      setLoading(true);
-      setError('');
-      const newMessages = [...messages, { role: 'user', content: userInput }];
-      setMessages(newMessages);
+  const [userInput, setUserInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [copySuccess, setCopySuccess] = useState('');
 
-      try {
-        const res = await fetch('http://localhost:10000/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: newMessages, language })
-        });
-        const data = await res.json();
-        setMessages([...newMessages, { role: 'assistant', content: data.content }]);
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+  }, [messages]);
 
-        const newUses = uses + 1;
-        setUses(newUses);
-        localStorage.setItem('freeUses', newUses);
-      } catch (err) {
-        setError('Something went wrong. Please try again.');
-      }
+  const sendMessage = async (customInput = null) => {
+    const input = customInput !== null ? customInput : userInput;
+    if (!input.trim()) return;
+    setLoading(true);
+    setError('');
 
-      setUserInput('');
-      setLoading(false);
-    } else {
-      setError('Limit reached. Please submit your email to continue.');
-    }
-  };
-
-  const handleEmailSubmit = async () => {
-    if (!email.includes('@')) {
-      setError('Please enter a valid email.');
-      return;
-    }
+    const updatedMessages = [getSystemMessage(language), ...messages.slice(1), { role: 'user', content: input }];
+    setUserInput('');
 
     try {
-      const res = await fetch('https://aceswin.onrender.com/api/submit-email', {
+     const res = await fetch('https://mql4traderaibuiler.onrender.com/api/generate-ea', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ messages: updatedMessages })
       });
 
-      if (res.ok) {
-        localStorage.setItem('userEmail', email);
-        setEmailSubmitted(true);
-        setError('');
+      const data = await res.json();
+
+      if (data.error) {
+        setError(data.error);
       } else {
-        setError('Server rejected the email. Please try again.');
+        const assistantMsg = { role: 'assistant', content: data.eaCode };
+        const updatedAllMessages = [...updatedMessages, assistantMsg];
+        setMessages(updatedAllMessages);
       }
     } catch (err) {
-      setError('Unable to reach the server.');
+      setError('Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,15 +66,6 @@ Instructions:
     localStorage.removeItem('chatMessages');
     setUserInput('');
     setError('');
-  };
-
-  const resetGating = () => {
-    localStorage.removeItem('freeUses');
-    localStorage.removeItem('userEmail');
-    setUses(0);
-    setEmailSubmitted(false);
-    setError('');
-    alert("Gating reset. You now have 0 uses.");
   };
 
   const downloadCode = () => {
@@ -127,8 +81,9 @@ Instructions:
     document.body.removeChild(link);
   };
 
+  const lastAssistant = messages.findLast(msg => msg.role === 'assistant');
+
   const copyCodeToClipboard = () => {
-    const lastAssistant = messages.findLast(msg => msg.role === 'assistant');
     if (!lastAssistant?.content) return;
 
     navigator.clipboard.writeText(lastAssistant.content)
@@ -142,26 +97,9 @@ Instructions:
       });
   };
 
-  const lastAssistant = messages.findLast(msg => msg.role === 'assistant');
-
   return (
     <div style={{ background: '#fff', color: '#000', padding: 20, fontFamily: 'monospace' }}>
       <h1>MQL4TraderAI EA Builder</h1>
-
-      {!emailSubmitted && uses !== null && uses >= 3 && (
-        <div style={{ background: '#ffecec', padding: 20, marginBottom: 20, border: '1px solid red' }}>
-          <p>🔒 You’ve used your 3 free requests.</p>
-          <p>Enter your email to continue using the EA builder:</p>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            style={{ width: '100%', padding: 10, marginBottom: 10 }}
-          />
-          <button onClick={handleEmailSubmit}>Continue</button>
-        </div>
-      )}
 
       <div style={{ marginBottom: 10 }}>
         <label style={{ marginRight: 10 }}>Target Language:</label>
@@ -188,11 +126,10 @@ Instructions:
         rows={4}
         placeholder="Describe your EA strategy or request help with your existing code..."
         style={{ width: '100%', padding: 10 }}
-        disabled={!emailSubmitted && uses >= 3}
       ></textarea>
 
       <div style={{ marginTop: 10 }}>
-        <button onClick={sendMessage} disabled={loading || (!emailSubmitted && uses >= 3)}>
+        <button onClick={() => sendMessage()} disabled={loading}>
           {loading ? 'Thinking...' : 'Generate EA code'}
         </button>
         <button onClick={resetSession} style={{ marginLeft: 10 }}>
@@ -200,9 +137,6 @@ Instructions:
         </button>
         <button onClick={downloadCode} style={{ marginLeft: 10 }} disabled={!lastAssistant}>
           Download MQ4
-        </button>
-        <button onClick={resetGating} style={{ marginLeft: 10 }}>
-          Reset Gating
         </button>
       </div>
 
