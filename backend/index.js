@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // uses your .env secret key
 dotenv.config();
 
 const app = express();
@@ -10,7 +11,7 @@ const PORT = process.env.PORT || 4000;
 
 // 🔐 Allow only your frontend to access the API
 app.use(cors({
-  origin: ['https://www.mql4trader.com', 'http://localhost:3000'], // allow prod + local dev
+  origin: ['https://www.mql4trader.com/ai/', 'http://localhost:3000'], // allow prod + local dev
   credentials: true
 }));
 
@@ -74,13 +75,36 @@ You are an MQL4 coding expert. The user will describe a trading strategy, and yo
 });
 
 // ✅ Email submission route
-app.post('/api/submit-email', (req, res) => {
+app.post('/api/create-checkout-session', async (req, res) => {
   const { email } = req.body;
+
   if (!email || !email.includes('@')) {
-    return res.status(400).json({ error: 'Invalid email format' });
+    return res.status(400).json({ error: 'Invalid email' });
   }
-  console.log('📧 Email submitted:', email);
-  res.status(200).json({ message: 'Email received' });
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      customer_email: email,
+      line_items: [
+        {
+          price: 'price_1RmOad4QTmLnNOeC5rTGTKv2', // your Stripe price ID
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription', // or 'payment' for one-time use
+      success_url: 'https://www.mql4trader.com/ai/?success=true',
+      cancel_url: 'https://www.mql4trader.com/ai/?canceled=true',
+      metadata: {
+        userEmail: email,
+      },
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('❌ Stripe session error:', error);
+    res.status(500).json({ error: 'Could not create checkout session' });
+  }
 });
 
 // ✅ Basic test route
