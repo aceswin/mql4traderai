@@ -102,9 +102,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     res.json({ url: session.url });
   } catch (error) {
-    console.error('❌ Stripe session error:', error);
-    res.status(500).json({ error: 'Could not create checkout session' });
-  }
+  console.error('❌ Stripe session error:', error.message, error);
+  res.status(500).json({ error: error.message || 'Could not create checkout session' });
+}
 });
 
 // ✅ Basic test route
