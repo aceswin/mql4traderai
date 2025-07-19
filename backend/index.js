@@ -74,7 +74,7 @@ You are an MQL4 coding expert. The user will describe a trading strategy, and yo
   }
 });
 
-// ✅ Email submission route
+// ✅ Email submission route 
 app.post('/api/create-checkout-session', async (req, res) => {
   const { email } = req.body;
 
@@ -83,27 +83,28 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 
   try {
- const session = await stripe.checkout.sessions.create({
-  payment_method_types: ['card'],
-  customer_email: email,
-  line_items: [
-    {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      customer_email: email,
+      line_items: [
+        {
           price: 'price_1RmRAFGEZqQYhzCHR2vdkOrh', // your Stripe price ID
           quantity: 1,
         },
       ],
-     mode: 'subscription',
-  success_url: 'https://www.mql4trader.com/ai/?success=true',
-  cancel_url: 'https://www.mql4trader.com/ai/?canceled=true',
-  metadata: { userEmail: email, 
-      },
+      mode: 'subscription',
+      success_url: 'https://www.mql4trader.com/ai/?success=true',
+      cancel_url: 'https://www.mql4trader.com/ai/?canceled=true',
+      metadata: {
+        userEmail: email
+      }
     });
 
     res.json({ url: session.url });
   } catch (error) {
-  console.error('❌ Stripe session error:', error.message, error);
-  res.status(500).json({ error: error.message || 'Could not create checkout session' });
-}
+    console.error('❌ Stripe session error:', error.message, error);
+    res.status(500).json({ error: error.message || 'Could not create checkout session' });
+  }
 });
 
 // ✅ Basic test route
