@@ -83,20 +83,20 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      customer_email: email,
-      line_items: [
-        {
-          price: 'price_1RmOad4QTmLnNOeC5rTGTKv2', // your Stripe price ID
+   const session = await stripe.checkout.sessions.create({
+  payment_method_types: ['card'],
+  customer_email: email,
+  line_items: [
+    {
+          price: 'price_1RmRAFGEZqQYhzCHR2vdkOrh', // your Stripe price ID
           quantity: 1,
         },
       ],
-      mode: 'subscription', // or 'payment' for one-time use
-      success_url: 'https://www.mql4trader.com/ai/?success=true',
-      cancel_url: 'https://www.mql4trader.com/ai/?canceled=true',
-      metadata: {
-        userEmail: email,
+      mode: 'payment',
+  success_url: 'https://www.mql4trader.com/ai/?success=true',
+  cancel_url: 'https://www.mql4trader.com/ai/?canceled=true',
+  metadata: {
+    userEmail: email,
       },
     });
 
