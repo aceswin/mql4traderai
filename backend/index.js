@@ -1,4 +1,4 @@
-import express from 'express';
+import express from 'express'; 
 import cors from 'cors';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
@@ -8,8 +8,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ This was working fine before — basic open CORS
-app.use(cors());
+// 🔐 Allow only your frontend to access the API
+app.use(cors({
+  origin: ['https://www.mql4trader.com', 'http://localhost:3000'], // allow prod + local dev
+  credentials: true
+}));
+
 app.use(express.json());
 
 // ✅ EA generation route
@@ -69,7 +73,7 @@ You are an MQL4 coding expert. The user will describe a trading strategy, and yo
   }
 });
 
-// ✅ Email submission route (was working)
+// ✅ Email submission route
 app.post('/api/submit-email', (req, res) => {
   const { email } = req.body;
   if (!email || !email.includes('@')) {
@@ -78,8 +82,11 @@ app.post('/api/submit-email', (req, res) => {
   console.log('📧 Email submitted:', email);
   res.status(200).json({ message: 'Email received' });
 });
+
+// ✅ Basic test route
 app.get('/', (req, res) => {
   res.send('✅ Backend is running');
 });
-// ✅ DO NOT hardcode a port — keep this!
+
+// ✅ Keep the dynamic port (important for Render)
 app.listen(PORT, () => console.log(`🚀 EA Builder backend running on port ${PORT}`));
