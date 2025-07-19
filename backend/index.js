@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 4000;
 
 // 🔐 Allow only your frontend to access the API
 app.use(cors({
-  origin: ['https://www.mql4trader.com/ai/', 'http://localhost:3000'], // allow prod + local dev
+  origin: ['https://www.mql4trader.com', 'http://localhost:3000'], // allow prod + local dev
   credentials: true
 }));
 
