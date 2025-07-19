@@ -93,8 +93,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'subscription',
-      success_url: 'https://www.mql4trader.com/after-checkout?success=true',
-cancel_url: 'https://www.mql4trader.com/after-checkout?canceled=true',
+      success_url: "https://www.mql4trader.com/aibuilder/",
+cancel_url: "https://www.mql4trader.com/aibuilder/",
       metadata: {
         userEmail: email
       }
