@@ -60,7 +60,7 @@ app.use(express.json());
 
 // ✅ EA Generation
 app.post('/api/generate-ea', async (req, res) => {
-  const { messages } = req.body;
+  const { messages, language } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Messages array is required.' });
   }
@@ -69,7 +69,7 @@ app.post('/api/generate-ea', async (req, res) => {
     {
       role: 'system',
       content: `
-You are an MQL4 and MQL5 coding expert. The user will describe a trading strategy, and your job is to output complete, clean MQL4 or MQL5 Expert Advisor (.mq4) code that matches the strategy and the chosen code type.
+You are an ${language === 'mql5' ? 'MQL5' : 'MQL4'} coding expert. The user will describe a trading strategy, and your job is to output complete, clean MQL4 or MQL5 Expert Advisor (.mq4) code that matches the strategy and the chosen code type.
 
 Respond in **two parts**:
 
