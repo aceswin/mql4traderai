@@ -83,7 +83,7 @@ Respond in **two parts**:
 When setting Stop Loss (SL) and Take Profit (TP), always:
 
 - Use NormalizeDouble(..., Digits) on the price values.
-- Ensure SL and TP are at least `MarketInfo(Symbol(), MODE_STOPLEVEL) * Point` away from the entry price.
+✅ Ensure SL and TP are at least \`MarketInfo(Symbol(), MODE_STOPLEVEL) * Point\` away from the entry price.
 - Include a comment block with the SL, TP, and Ask/Bid values for debugging.
 
 Example logic:
