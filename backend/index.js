@@ -65,7 +65,9 @@ app.post('/api/generate-ea', async (req, res) => {
     return res.status(400).json({ error: 'Messages array is required.' });
   }
 
-  const updatedMessages = [
+  
+const { messages, language } = req.body;
+const updatedMessages = [
     {
       role: 'system',
       content: `
