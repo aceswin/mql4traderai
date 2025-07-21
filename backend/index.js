@@ -152,7 +152,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       customer_email: email,
       line_items: [
         {
-          price: 'price_1RmRAFGEZqQYhzCHR2vdkOrh',
+          price: 'price_1Rn0kuGEZqQYhzCH9jVhTWY3',
           quantity: 1,
         },
       ],
