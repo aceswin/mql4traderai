@@ -61,8 +61,10 @@ app.use(express.json());
 // ✅ EA Generation
 app.post('/api/generate-ea', async (req, res) => {
   const { messages, language } = req.body;
+  console.log('📨 Incoming /generate-ea request:', { messages, language });
 
   if (!messages || !Array.isArray(messages)) {
+    console.log('❌ Invalid messages received');
     return res.status(400).json({ error: 'Messages array is required.' });
   }
 
@@ -110,14 +112,16 @@ Example logic:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4-1106-preview',
+        model: 'gpt-4o',
         temperature: 0.2,
         messages: updatedMessages
       })
     });
 
+   console.log('✅ OpenAI responded, attempting to parse JSON...');
     const data = await response.json();
-console.log('🔄 OpenAI raw response:', JSON.stringify(data, null, 2));
+    console.log('🔄 OpenAI raw response:', JSON.stringify(data, null, 2));
+
     let code = data.choices?.[0]?.message?.content?.trim() || '';
     if (code.startsWith('```')) {
       code = code.replace(/```mql4|```mql|```mq4|```/gi, '').trim();
