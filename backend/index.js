@@ -61,13 +61,12 @@ app.use(express.json());
 // ✅ EA Generation
 app.post('/api/generate-ea', async (req, res) => {
   const { messages, language } = req.body;
+
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Messages array is required.' });
   }
 
-  
-const { messages, language } = req.body;
-const updatedMessages = [
+  const updatedMessages = [
     {
       role: 'system',
       content: `
