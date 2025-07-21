@@ -117,7 +117,7 @@ Example logic:
     });
 
     const data = await response.json();
-
+console.log('🔄 OpenAI raw response:', JSON.stringify(data, null, 2));
     let code = data.choices?.[0]?.message?.content?.trim() || '';
     if (code.startsWith('```')) {
       code = code.replace(/```mql4|```mql|```mq4|```/gi, '').trim();
